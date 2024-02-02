@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="cordova-plugin-zkfingerprint" version="0.0.27" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
-	<name>cordova-plugin-zkfingerprint</name>
+<plugin id="cordova-plugin-zkfinger" version="0.0.27" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+	<name>cordova-plugin-zkfinger</name>
 	<description>
-		This plugin allows for easy cordova integration with the zkteco z9500 fingerprint reader
+		This plugin allows for easy cordova integration with the zkteco z4500 fingerprint reader
 	</description>
 
 	<js-module name="zkFinger" src="www/zkfinger.js"><clobbers target="cordova.plugins.zkFinger" /></js-module>
