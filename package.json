@@ -1,5 +1,5 @@
 {
-  "name": "cordova-plugin-zkfingerprint",
+  "name": "cordova-plugin-zkfinger",
   "version": "0.0.1",
   "description": "A cordova plugin for the zkteco zk9500 fingerprint reader",
   "main": "plugin.xml",
@@ -9,7 +9,7 @@
   "author": "Mpho Mulwanndwa <ianmin2@live.com>",
   "license": "ISC",
   "cordova": {
-    "id": "cordova-plugin-zkfingerprint",
+    "id": "cordova-plugin-zkfinger",
     "platforms": [
       "android"
     ]
