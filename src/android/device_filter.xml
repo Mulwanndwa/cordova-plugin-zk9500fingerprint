@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <usb-device vendor-id="6997" product-id="292" />
+    <usb-device vendor-id="1240" product-id="223" />
     <!-- vendor-id: 6997; product-id:512: finger vein sensor-->
 </resources>
