@@ -9,29 +9,30 @@
 
 
     <LinearLayout
-        android:id="@+id/my_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:visibility="visible"
+        tools:visibility="visible">
 
         <TextView
             android:id="@+id/textView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="#ddd"
-            android:text="TextView"
-            android:textColor="#009688" />
+            android:background="#4CAF50"
+            android:text="Scan your finger"
+            android:textSize="24sp"
+            android:visibility="visible"
+            tools:textAlignment="center"
+            tools:visibility="visible" />
 
         <ImageView
             android:id="@+id/imageView"
-            android:layout_width="826dp"
-            android:layout_height="1313dp"
-            android:layout_weight="1"
-            android:background="#0000"
-            android:verticalScrollbarPosition="defaultPosition"
-            tools:srcCompat="@tools:sample/avatars" />
+            android:layout_width="match_parent"
+            android:layout_height="301dp"
+            android:baselineAlignBottom="false"
+            android:visibility="visible"
+            app:srcCompat="@color/result_minor_text"
+            tools:visibility="visible" />
     </LinearLayout>
-
 </LinearLayout>
