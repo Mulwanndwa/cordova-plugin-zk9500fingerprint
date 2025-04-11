@@ -1,60 +1,37 @@
 package cordova.plugin.zkteco.scan;
 
-import static android.app.PendingIntent.getActivity;
-import static android.os.Environment.getExternalStoragePublicDirectory;
-
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertFalse;
-
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.PendingIntent;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbDeviceConnection;
-import android.hardware.usb.UsbManager;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Base64;
+import android.app.PendingIntent;
 
 import java.io.ByteArrayOutputStream;
-import java.net.HttpCookie;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64.Decoder;
-import java.util.Base64.Encoder;
+import android.widget.LinearLayout;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import android.content.Context;
+import android.Manifest;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbManager;
+import android.os.Bundle;
+import android.util.ArrayMap;
+import android.util.Base64;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.zkteco.android.biometric.core.device.ParameterHelper;
 import com.zkteco.android.biometric.core.device.TransportType;
@@ -66,47 +43,32 @@ import com.zkteco.android.biometric.module.fingerprintreader.FingprintFactory;
 import com.zkteco.android.biometric.module.fingerprintreader.ZKFingerService;
 import com.zkteco.android.biometric.module.fingerprintreader.exception.FingerprintException;
 
-import com.android.volley.NetworkResponse;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-//import com.zkteco.biometric.ZKFPService;
 
-import org.apache.commons.io.FileUtils;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.OutputStreamWriter;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.io.File;
-import android.widget.Toast;
 
-import java.util.Objects;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.res.Resources;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
+import android.widget.EditText;
+import android.widget.TextView;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.widget.AdapterView;
+import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaInterface;
+import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.LOG;
+import org.apache.cordova.PluginResult;
 
 public class zkFinger extends CordovaPlugin
 {
@@ -216,9 +178,9 @@ public class zkFinger extends CordovaPlugin
         command = callbackContext;
 
         try {
-            startFingerprintSensor(command);
+            startFingerprintSensor();
         } catch (FingerprintException e) {
-            throw new RuntimeException(e);
+            callbackContext.error(e.getMessage());
         }
         try {
             if (action.equals("scan")) {
@@ -236,13 +198,13 @@ public class zkFinger extends CordovaPlugin
             else if(action.equals("saveTemplate")){
                 return true;
             }
-            
+
             return false;
 
 
-        
+
         }
-        catch (Exception e){    
+        catch (Exception e){
             callbackContext.error(e.getMessage());
             return false;
         }
@@ -281,10 +243,10 @@ public class zkFinger extends CordovaPlugin
         }
     }
 
-    private void startFingerprintSensor(CallbackContext callbackContext) throws FingerprintException {
-        // Define output log level
-        UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
-        PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_IMMUTABLE);
+    private void startFingerprintSensor() throws FingerprintException {
+
+        UsbManager manager = (UsbManager)cordova.getActivity().getApplicationContext().getSystemService(Context.USB_SERVICE);
+        PendingIntent permissionIntent = PendingIntent.getBroadcast(cordova.getActivity().getApplicationContext(), 0, new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_IMMUTABLE);
         HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
         for (UsbDevice usbDevice : deviceList.values())
         {
@@ -300,10 +262,9 @@ public class zkFinger extends CordovaPlugin
         fingerprintParams.put(ParameterHelper.PARAM_KEY_VID, VID);
         //set pid
         fingerprintParams.put(ParameterHelper.PARAM_KEY_PID, PID);
-        fingerprintSensor = FingprintFactory.createFingerprintSensor(this, TransportType.USB, fingerprintParams);
+        fingerprintSensor = FingprintFactory.createFingerprintSensor(cordova.getActivity().getApplicationContext(), TransportType.USB, fingerprintParams);
 
-        OnBnBegin();
-
+        OnBnBegin(command);
     }
 
     private void InitDevice()
@@ -311,7 +272,7 @@ public class zkFinger extends CordovaPlugin
 
         UsbManager musbManager = null;
         //if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB_MR1) {
-            musbManager = (UsbManager)cordova.getActivity().getApplicationContext().getSystemService(Context.USB_SERVICE);
+        musbManager = (UsbManager)cordova.getActivity().getApplicationContext().getSystemService(Context.USB_SERVICE);
         //}
         IntentFilter filter = new IntentFilter();
         filter.addAction(ACTION_USB_PERMISSION);
@@ -320,18 +281,18 @@ public class zkFinger extends CordovaPlugin
         context.registerReceiver(mUsbReceiver, filter);
 
         //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1) {
-            for (UsbDevice device : musbManager.getDeviceList().values())
+        for (UsbDevice device : musbManager.getDeviceList().values())
+        {
+            if (device.getVendorId() == VID && device.getProductId() == PID)
             {
-                if (device.getVendorId() == VID && device.getProductId() == PID)
+                if (!musbManager.hasPermission(device))
                 {
-                    if (!musbManager.hasPermission(device))
-                    {
-                        Intent intent = new Intent(ACTION_USB_PERMISSION);
-                        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
-                        musbManager.requestPermission(device, pendingIntent);
-                    }
+                    Intent intent = new Intent(ACTION_USB_PERMISSION);
+                    PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+                    musbManager.requestPermission(device, pendingIntent);
                 }
             }
+        }
         //}
 
 
@@ -351,7 +312,7 @@ public class zkFinger extends CordovaPlugin
                     final int width = fingerprintSensor.getImageWidth();
                     final int height = fingerprintSensor.getImageHeight();
 
-                   cordova.getActivity().runOnUiThread(new Runnable() {
+                    cordova.getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
 
@@ -388,10 +349,10 @@ public class zkFinger extends CordovaPlugin
                 @Override
                 public void captureError(FingerprintException e) {
                     final FingerprintException exp = e;
-                   cordova.getActivity().runOnUiThread(new Runnable() {
+                    cordova.getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                             command.success("captureError  errno=" + exp.getErrorCode() +
+                            command.success("captureError  errno=" + exp.getErrorCode() +
                                     ",Internal error code: " + exp.getInternalErrorCode() + ",message=" + exp.getMessage());
                         }
                     });
@@ -399,7 +360,7 @@ public class zkFinger extends CordovaPlugin
                 @Override
                 public void extractError(final int err)
                 {
-                   cordova.getActivity().runOnUiThread(new Runnable() {
+                    cordova.getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
 
@@ -416,7 +377,7 @@ public class zkFinger extends CordovaPlugin
 
                     command.success("Capturing...");
 
-                   cordova.getActivity().runOnUiThread(new Runnable() {
+                    cordova.getActivity().runOnUiThread(new Runnable() {
 
                         @SuppressLint("SetTextI18n")
                         @Override
@@ -426,7 +387,7 @@ public class zkFinger extends CordovaPlugin
 
 
                             if(isRegistered){
-                                 command.success("User ID: "+newUid+". The finger already enrolled.");
+                                command.success("User ID: "+newUid+". The finger already enrolled.");
                                 return;
                             }
 
@@ -533,127 +494,127 @@ public class zkFinger extends CordovaPlugin
 
 
 
-    public static byte[] convertToBmp24bit(byte[] imageData) {
-        Bitmap orgBitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
-
-        if(orgBitmap == null){
-            return null;
-        }
-
-        //image size
-        int width = orgBitmap.getWidth();
-        int height = orgBitmap.getHeight();
-
-        //image dummy data size
-        //reason : the amount of bytes per image row must be a multiple of 4 (requirements of bmp format)
-        byte[] dummyBytesPerRow = null;
-        boolean hasDummy = false;
-        int rowWidthInBytes = BYTE_PER_PIXEL * width; //source image width * number of bytes to encode one pixel.
-        if(rowWidthInBytes%BMP_WIDTH_OF_TIMES>0){
-            hasDummy=true;
-            //the number of dummy bytes we need to add on each row
-            dummyBytesPerRow = new byte[(BMP_WIDTH_OF_TIMES-(rowWidthInBytes%BMP_WIDTH_OF_TIMES))];
-            //just fill an array with the dummy bytes we need to append at the end of each row
-            for(int i = 0; i < dummyBytesPerRow.length; i++){
-                dummyBytesPerRow[i] = (byte)0xFF;
-            }
-        }
-
-        //an array to receive the pixels from the source image
-        int[] pixels = new int[width * height];
-
-        //the number of bytes used in the file to store raw image data (excluding file headers)
-        int imageSize = (rowWidthInBytes+(hasDummy?dummyBytesPerRow.length:0)) * height;
-        //file headers size
-        int imageDataOffset = 0x36;
-
-        //final size of the file
-        int fileSize = imageSize + imageDataOffset;
-
-        //Android Bitmap Image Data
-        orgBitmap.getPixels(pixels, 0, width, 0, 0, width, height);
-
-        //ByteArrayOutputStream baos = new ByteArrayOutputStream(fileSize);
-        ByteBuffer buffer = ByteBuffer.allocate(fileSize);
-
-        try {
-            /*
-            BITMAP FILE HEADER Write Start
-            */
-            buffer.put((byte)0x42);
-            buffer.put((byte)0x4D);
-
-            //size
-            buffer.put(writeInt(fileSize));
-
-            //reserved
-            buffer.put(writeShort((short)0));
-            buffer.put(writeShort((short)0));
-
-            //image data start offset
-            buffer.put(writeInt(imageDataOffset));
-
-            /* BITMAP FILE HEADER Write End */
-
-            //*******************************************
-
-            /* BITMAP INFO HEADER Write Start */
-            //size
-            buffer.put(writeInt(0x28));
-
-            //width, height
-            //if we add 3 dummy bytes per row : it means we add a pixel (and the image width is modified.
-            buffer.put(writeInt(width+(hasDummy?(dummyBytesPerRow.length==3?1:0):0)));
-            buffer.put(writeInt(height));
-
-            //planes
-            buffer.put(writeShort((short)1));
-
-            //bit count
-            buffer.put(writeShort((short)24));
-
-            //bit compression
-            buffer.put(writeInt(0));
-
-            //image data size
-            buffer.put(writeInt(imageSize));
-
-            //horizontal resolution in pixels per meter
-            buffer.put(writeInt(0));
-
-            //vertical resolution in pixels per meter (unreliable)
-            buffer.put(writeInt(0));
-
-            buffer.put(writeInt(0));
-
-            buffer.put(writeInt(0));
-
-            /* BITMAP INFO HEADER Write End */
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        int row = height;
-        int col = width;
-        int startPosition = (row - 1) * col;
-        int endPosition = row * col;
-        while( row > 0 ){
-            for(int i = startPosition; i < endPosition; i++ ){
-                buffer.put((byte)(pixels[i] & 0x000000FF));
-                buffer.put((byte)((pixels[i] & 0x0000FF00) >> 8));
-                buffer.put((byte)((pixels[i] & 0x00FF0000) >> 16));
-            }
-            if(hasDummy){
-                buffer.put(dummyBytesPerRow);
-            }
-            row--;
-            endPosition = startPosition;
-            startPosition = startPosition - col;
-        }
-
-        return buffer.array();
-    }
+    //    public static byte[] convertToBmp24bit(byte[] imageData) {
+//        Bitmap orgBitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
+//
+//        if(orgBitmap == null){
+//            return null;
+//        }
+//
+//        //image size
+//        int width = orgBitmap.getWidth();
+//        int height = orgBitmap.getHeight();
+//
+//        //image dummy data size
+//        //reason : the amount of bytes per image row must be a multiple of 4 (requirements of bmp format)
+//        byte[] dummyBytesPerRow = null;
+//        boolean hasDummy = false;
+//        int rowWidthInBytes = BYTE_PER_PIXEL * width; //source image width * number of bytes to encode one pixel.
+//        if(rowWidthInBytes%BMP_WIDTH_OF_TIMES>0){
+//            hasDummy=true;
+//            //the number of dummy bytes we need to add on each row
+//            dummyBytesPerRow = new byte[(BMP_WIDTH_OF_TIMES-(rowWidthInBytes%BMP_WIDTH_OF_TIMES))];
+//            //just fill an array with the dummy bytes we need to append at the end of each row
+//            for(int i = 0; i < dummyBytesPerRow.length; i++){
+//                dummyBytesPerRow[i] = (byte)0xFF;
+//            }
+//        }
+//
+//        //an array to receive the pixels from the source image
+//        int[] pixels = new int[width * height];
+//
+//        //the number of bytes used in the file to store raw image data (excluding file headers)
+//        int imageSize = (rowWidthInBytes+(hasDummy?dummyBytesPerRow.length:0)) * height;
+//        //file headers size
+//        int imageDataOffset = 0x36;
+//
+//        //final size of the file
+//        int fileSize = imageSize + imageDataOffset;
+//
+//        //Android Bitmap Image Data
+//        orgBitmap.getPixels(pixels, 0, width, 0, 0, width, height);
+//
+//        //ByteArrayOutputStream baos = new ByteArrayOutputStream(fileSize);
+//        ByteBuffer buffer = ByteBuffer.allocate(fileSize);
+//
+//        try {
+//            /*
+//            BITMAP FILE HEADER Write Start
+//            */
+//            buffer.put((byte)0x42);
+//            buffer.put((byte)0x4D);
+//
+//            //size
+//            buffer.put(writeInt(fileSize));
+//
+//            //reserved
+//            buffer.put(writeShort((short)0));
+//            buffer.put(writeShort((short)0));
+//
+//            //image data start offset
+//            buffer.put(writeInt(imageDataOffset));
+//
+//            /* BITMAP FILE HEADER Write End */
+//
+//            //*******************************************
+//
+//            /* BITMAP INFO HEADER Write Start */
+//            //size
+//            buffer.put(writeInt(0x28));
+//
+//            //width, height
+//            //if we add 3 dummy bytes per row : it means we add a pixel (and the image width is modified.
+//            buffer.put(writeInt(width+(hasDummy?(dummyBytesPerRow.length==3?1:0):0)));
+//            buffer.put(writeInt(height));
+//
+//            //planes
+//            buffer.put(writeShort((short)1));
+//
+//            //bit count
+//            buffer.put(writeShort((short)24));
+//
+//            //bit compression
+//            buffer.put(writeInt(0));
+//
+//            //image data size
+//            buffer.put(writeInt(imageSize));
+//
+//            //horizontal resolution in pixels per meter
+//            buffer.put(writeInt(0));
+//
+//            //vertical resolution in pixels per meter (unreliable)
+//            buffer.put(writeInt(0));
+//
+//            buffer.put(writeInt(0));
+//
+//            buffer.put(writeInt(0));
+//
+//            /* BITMAP INFO HEADER Write End */
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            return null;
+//        }
+//
+//        int row = height;
+//        int col = width;
+//        int startPosition = (row - 1) * col;
+//        int endPosition = row * col;
+//        while( row > 0 ){
+//            for(int i = startPosition; i < endPosition; i++ ){
+//                buffer.put((byte)(pixels[i] & 0x000000FF));
+//                buffer.put((byte)((pixels[i] & 0x0000FF00) >> 8));
+//                buffer.put((byte)((pixels[i] & 0x00FF0000) >> 16));
+//            }
+//            if(hasDummy){
+//                buffer.put(dummyBytesPerRow);
+//            }
+//            row--;
+//            endPosition = startPosition;
+//            startPosition = startPosition - col;
+//        }
+//
+//        return buffer.array();
+//    }
     private static byte[] writeInt(int value) throws IOException {
         byte[] b = new byte[4];
 
@@ -743,7 +704,7 @@ public class zkFinger extends CordovaPlugin
         LogHelper.i("requestCode - "+requestCode);
         if( requestCode == MY_OP )
         {
-            if( resultCode == Activity.RESULT_OK && data.hasExtra("base64") )
+            if( resultCode == cordova.getActivity().RESULT_OK && data.hasExtra("base64") )
             {
                 PluginResult result = new PluginResult(PluginResult.Status.OK, data.getStringExtra("base64"));
                 result.setKeepCallback(true);
