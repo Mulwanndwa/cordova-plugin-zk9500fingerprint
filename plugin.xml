@@ -30,6 +30,7 @@
 		<source-file src="src/android/zkandroidfpreader.jar" target-dir="libs" framework="true" />
 		<source-file src="src/android/zkFinger.java" target-dir="src/cordova/plugin/zkteco/scan/zkFinger" />
 		<source-file src="src/android/device_filter.xml" target-dir="res/xml" />
+		<source-file src="src/android/musicg-1.4.2.0.jar" target-dir="libs" framework="true" />
 		
 		<!-- <platform name="android">
 			
