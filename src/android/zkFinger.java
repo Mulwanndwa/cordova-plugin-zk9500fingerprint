@@ -1,53 +1,112 @@
 package cordova.plugin.zkteco.scan;
 
-import org.apache.cordova.PluginResult;
-import org.json.JSONArray;
-import org.json.JSONException;
+import static android.app.PendingIntent.getActivity;
+import static android.os.Environment.getExternalStoragePublicDirectory;
 
-import java.nio.ByteBuffer;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertFalse;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbDeviceConnection;
+import android.hardware.usb.UsbManager;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Base64;
+
+import java.io.ByteArrayOutputStream;
+import java.net.HttpCookie;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64.Decoder;
+import java.util.Base64.Encoder;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.zkteco.android.biometric.core.device.ParameterHelper;
 import com.zkteco.android.biometric.core.device.TransportType;
 import com.zkteco.android.biometric.core.utils.LogHelper;
 import com.zkteco.android.biometric.core.utils.ToolUtils;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.HashMap;
-import java.util.Map;
-
-import android.annotation.SuppressLint;
-import android.app.AlertDialog;
-import android.widget.LinearLayout;
-
-import org.apache.cordova.CallbackContext;
-import org.apache.cordova.CordovaPlugin;
-
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbManager;
-
 import com.zkteco.android.biometric.module.fingerprintreader.FingerprintCaptureListener;
 import com.zkteco.android.biometric.module.fingerprintreader.FingerprintSensor;
 import com.zkteco.android.biometric.module.fingerprintreader.FingprintFactory;
 import com.zkteco.android.biometric.module.fingerprintreader.ZKFingerService;
 import com.zkteco.android.biometric.module.fingerprintreader.exception.FingerprintException;
 
-import android.util.Log;
-import android.util.Base64;
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+//import com.zkteco.biometric.ZKFPService;
 
-import android.content.BroadcastReceiver;
-import java.io.ByteArrayOutputStream;
+import org.apache.commons.io.FileUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.io.File;
+import android.widget.Toast;
+
+import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.widget.AdapterView;
 
 public class zkFinger extends CordovaPlugin
 {
@@ -73,7 +132,6 @@ public class zkFinger extends CordovaPlugin
 
     private final String ACTION_USB_PERMISSION = "ordev.pos.placeorder.USB_PERMISSION";
 
-    //String  newUid1 = (String) textViewUid.getText();
     private int newUid = 25;
     private String strBase64 = "";
     public String baseUrl = "https://cmsdemo.placeorder.co.za/";
@@ -106,8 +164,6 @@ public class zkFinger extends CordovaPlugin
     int imageCount = 0;
 
     private CallbackContext command;
-//    private ImageView imageView = null;
-//    private TextView textView = null;
 
     LinearLayout layout;
 
@@ -115,15 +171,6 @@ public class zkFinger extends CordovaPlugin
 
     public final int MY_OP = 11;
 
-    /*
-    @Override
-    protected void onDestroy() 
-    {
-        super.onDestroy();
-        // Destroy fingerprint sensor when it's not used
-        FingerVeinFactory.destroy(fingerVeinSensor);
-    }
-    */
 
     public int[] json2int (JSONArray arr)
     {
@@ -168,53 +215,25 @@ public class zkFinger extends CordovaPlugin
 
         command = callbackContext;
 
-        //fingerprintSensor = MainActivity.getFingerprintSensor();
-
-//        AlertDialog.Builder builder = new AlertDialog.Builder( cordova.getActivity());
-//        LayoutInflater inflater = cordova.getActivity().getLayoutInflater();
-//        builder.setView(inflater.inflate(R.layout.dialog_signin, null));
-//        dialog = builder.create();
-//
-//        dialog.show();
-//
-//        textView = dialog.findViewById(R.id.textView);
-//        imageView = dialog.findViewById(R.id.imageView);
-        InitDevice();
         try {
             startFingerprintSensor(command);
         } catch (FingerprintException e) {
             throw new RuntimeException(e);
         }
-        try
-        {
-
-            //@ establish a connection to the device
-            //startFingerVeinSensor(callbackContext);
-
-            if (action.equals("scan")) 
-            {
-
-
+        try {
+            if (action.equals("scan")) {
                 this.OnBnBegin(callbackContext);
-
                 cordova.setActivityResultCallback (this);
                 Intent intent = new Intent();
                 intent.putExtra("base64", strBase64);
                 that = this;
                 cordova.startActivityForResult(that, intent, MY_OP);
-
                 return true;
             }
-            else if(action.equals("write"))
-            {
-
+            else if(action.equals("write")){
                 return true;
-
             }
-            else if(action.equals("saveTemplate"))
-            {
-
-
+            else if(action.equals("saveTemplate")){
                 return true;
             }
             
@@ -223,9 +242,7 @@ public class zkFinger extends CordovaPlugin
 
         
         }
-        catch (Exception e)
-        {
-                        
+        catch (Exception e){    
             callbackContext.error(e.getMessage());
             return false;
         }
@@ -266,6 +283,16 @@ public class zkFinger extends CordovaPlugin
 
     private void startFingerprintSensor(CallbackContext callbackContext) throws FingerprintException {
         // Define output log level
+        UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
+        PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_IMMUTABLE);
+        HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
+        for (UsbDevice usbDevice : deviceList.values())
+        {
+            if (usbDevice.getVendorId() == VID && usbDevice.getProductId() == PID)
+            {
+                manager.requestPermission(usbDevice, permissionIntent);
+            }
+        }
         LogHelper.setLevel(Log.VERBOSE);
         // Start fingerprint sensor
         Map fingerprintParams = new HashMap();
@@ -273,8 +300,9 @@ public class zkFinger extends CordovaPlugin
         fingerprintParams.put(ParameterHelper.PARAM_KEY_VID, VID);
         //set pid
         fingerprintParams.put(ParameterHelper.PARAM_KEY_PID, PID);
-        fingerprintSensor = FingprintFactory.createFingerprintSensor(cordova.getActivity().getApplicationContext(), TransportType.USB, fingerprintParams);
-        ////textView.setText("Begin"+fingerprintSensor);
+        fingerprintSensor = FingprintFactory.createFingerprintSensor(this, TransportType.USB, fingerprintParams);
+
+        OnBnBegin();
 
     }
 
@@ -339,28 +367,19 @@ public class zkFinger extends CordovaPlugin
                                 bitmapFp.compress(Bitmap.CompressFormat.JPEG, 100, stream2);
                                 byte[] byteArray = stream2.toByteArray();
 
-                                //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
-                                    strBase64 = Base64.encodeToString(byteArray, Base64.NO_WRAP);
-
-                               //}
-
-                                //StoreManager storeManager = new StoreManager(getApplicationContext());
-
-                                //stringNewTem = new String(byteArray);
+                                strBase64 = Base64.encodeToString(byteArray, Base64.NO_WRAP);
 
                                 LogHelper.i("strBase64 - "+strBase64);
-
-                                //Intent intent = new Intent();
                                 intent.putExtra("base64", strBase64);
 
                                 cordova.startActivityForResult(that, intent, MY_OP);
 
-                                //callbackContext.success(strBase64);
+                                callbackContext.success(strBase64);
 
 
                             }
 
-                            //command.success("FakeStatus:" + fingerprintSensor.getFakeStatus()+"\n"+stringNewTem+"\n"+stringNewTem);
+                            command.success("FakeStatus:" + fingerprintSensor.getFakeStatus()+"\n"+stringNewTem+"\n"+stringNewTem);
                         }
                     });
 
@@ -372,7 +391,7 @@ public class zkFinger extends CordovaPlugin
                    cordova.getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            LogHelper.d("captureError  errno=" + exp.getErrorCode() +
+                             command.success("captureError  errno=" + exp.getErrorCode() +
                                     ",Internal error code: " + exp.getInternalErrorCode() + ",message=" + exp.getMessage());
                         }
                     });
@@ -395,7 +414,7 @@ public class zkFinger extends CordovaPlugin
 
                     final byte[] tmpBuffer = fpTemplate;
 
-                    //command.success("Capturing...");
+                    command.success("Capturing...");
 
                    cordova.getActivity().runOnUiThread(new Runnable() {
 
@@ -407,7 +426,7 @@ public class zkFinger extends CordovaPlugin
 
 
                             if(isRegistered){
-                                //textView.setText("User ID: "+newUid+". The finger already enrolled.");
+                                 command.success("User ID: "+newUid+". The finger already enrolled.");
                                 return;
                             }
 
