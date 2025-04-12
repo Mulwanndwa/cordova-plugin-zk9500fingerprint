@@ -2,42 +2,27 @@
 <plugin id="cordova-plugin-zkfinger" version="0.0.27" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
 	<name>cordova-plugin-zkfinger</name>
 	<description>
-		This plugin allows for easy cordova integration with the zkteco z4500 fingerprint reader
+		This plugin allows for easy cordova integration with the zkteco ZK9500 fingerprint reader
 	</description>
-
 	<js-module name="zkFinger" src="www/zkfinger.js"><clobbers target="cordova.plugins.zkFinger" /></js-module>
-
 	<platform name="android">
-
-		 <!-- <dependency id="cordova-plugin-android-support-v4"/> -->
-
 		<config-file target="AndroidManifest.xml" parent="/*">
-
-				<meta-data
-				android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
-				android:resource="@xml/device_filter" />
-			<meta-data
-				android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
-				android:resource="@xml/activity_main" />
-
-            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-        </config-file>
+			<meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" android:resource="@xml/device_filter" />
+			<meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" android:resource="@xml/activity_main" />
+	            	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+	        </config-file>
 
 		<config-file target="res/xml/config.xml"  parent="/*">
 			<feature name="zkFinger">
 				<param name="android-package" value="cordova.plugin.zkteco.scan.zkFinger" />
 			</feature>
 		</config-file>
-		<!-- <config-file parent="/*" target="AndroidManifest.xml"></config-file> -->
 		<source-file src="src/android/zkandroidcore.jar" target-dir="libs" framework="true" />
 		<source-file src="src/android/zkandroidfpreader.jar" target-dir="libs" framework="true" />
 		<source-file src="src/android/zkFinger.java" target-dir="src/cordova/plugin/zkteco/scan/zkFinger" />
 		<source-file src="src/android/device_filter.xml" target-dir="res/xml" />
 		<source-file src="src/android/musicg-1.4.2.0.jar" target-dir="libs" framework="true" />
-		
-		<!-- <platform name="android">
-			
-		</platform> -->
-		<!-- <source-file src="src/android/io.bixbyte.zkFinger3.jar" target-dir="src/cordova/plugin/zkteco/scan/zkFinger" /> -->
+		<source-file src="src/android/device_filter.xml" target-dir="res/xml" />
+		<source-file src="src/android/SILKIDDemo-zkfinger10.xml" target-dir="android" />
 	</platform>
 </plugin>
