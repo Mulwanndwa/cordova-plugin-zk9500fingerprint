@@ -14,5 +14,8 @@
       "android"
     ]
   },
-  "keywords": ["zkteco","bixbyte","cordova","fingerprint","zk9500"]
+  "keywords": ["zkteco","bixbyte","cordova","fingerprint","zk9500"],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }
