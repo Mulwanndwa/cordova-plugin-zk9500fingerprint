@@ -117,6 +117,7 @@ public class zkFinger extends CordovaPlugin
     private ImageView imageView = null;
     private TextView textView = null;
     private View dialogView = null;
+    private Activity activity = null;
 
     public int[] json2int (JSONArray arr)
     {
@@ -158,38 +159,30 @@ public class zkFinger extends CordovaPlugin
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
 
+       activity = this.cordova.getActivity();
+    
 
         command = callbackContext;
 
-        Activity activity = this.cordova.getActivity();
-
+       
         try {
             if (action.equals("scan")) {
+                isRegistered = true;
+               
+                activity.runOnUiThread(() -> {
+                    activity.setContentView(R.layout.activity_main);
+                    textView = activity.findViewById(R.id.textView);
+                    imageView = activity.findViewById(R.id.imageView);
+                    textView.setText("Hello from Cordova plugin!");
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(cordova.getActivity());
-                LayoutInflater inflater = LayoutInflater.from(cordova.getActivity());
-                dialogView = inflater.inflate(R.layout.activity_main,null);
-                // Set the custom layout
-
-
-// (Optional) Set title, buttons, etc.
-                builder.setTitle("Custom Dialog");
-                builder.setPositiveButton("OK", null);
-
-                TextView dialogText = dialogView.findViewById(R.id.textView);
-                dialogText.setText("Hello from code!");
-
-                builder.setView(dialogView);
-                AlertDialog dialog = builder.create();
-                dialog.show();
-
+                });
                 InitDevice(command);
-
-                 cordova.setActivityResultCallback (this);
-                 Intent intent = new Intent();
-                 intent.putExtra("base64", strBase64);
-                 that = this;
-                 cordova.startActivityForResult(that, intent, MY_OP);
+                callbackContext.success("Native view shown");
+                 // cordova.setActivityResultCallback (this);
+                 // Intent intent = new Intent();
+                 // intent.putExtra("base64", strBase64);
+                 // that = this;
+                 // cordova.startActivityForResult(that, intent, MY_OP);
                 return true;
             }
             else if(action.equals("write")){
@@ -312,10 +305,11 @@ public class zkFinger extends CordovaPlugin
         //set pid
         fingerprintParams.put(ParameterHelper.PARAM_KEY_PID, PID);
         fingerprintSensor = FingprintFactory.createFingerprintSensor(cordova.getActivity().getApplicationContext(), TransportType.USB, fingerprintParams);
-
+       
+        
+       System.out.println("imageView - "+imageView);
 
         OnBnBegin(callbackContext);
-        //}
 
 
     }
@@ -323,20 +317,32 @@ public class zkFinger extends CordovaPlugin
     @SuppressLint("LongLogTag")
     public void OnBnBegin(CallbackContext callbackContext) throws FingerprintException
     {
-      
-       
-        TextView textView = dialogView.findViewById(R.id.textView);
-        imageView = dialogView.findViewById(R.id.imageView);
-        Activity activity = this.cordova.getActivity();
+  
+        //  Activity activity = this.cordova.getActivity();
+        // AlertDialog.Builder builder = new AlertDialog.Builder(cordova.getActivity());
+        // LayoutInflater inflater = LayoutInflater.from(cordova.getActivity());
+        // dialogView = inflater.inflate(R.layout.activity_main,null);
+        // // Set the custom layout
+
+        // builder.setTitle("Custom Dialog");
+        // builder.setPositiveButton("OK", null);
+
+        // textView = dialogView.findViewById(R.id.textView);
+        // imageView = dialogView.findViewById(R.id.imageView);
+
+        // textView.setText("Hello and welcome!");
+
+        // builder.setView(dialogView);
+
+        // AlertDialog dialog = builder.create();
+
+        // dialog.show();
 
         try {
             if (bstart) return;
 
             fingerprintSensor.open(0);
-        
-            //textView.setText("Fingerprint sensor opened");
-          
-            //ZKFingerService.clear();
+
             final FingerprintCaptureListener listener = new FingerprintCaptureListener() {
 
                 @Override
@@ -349,6 +355,7 @@ public class zkFinger extends CordovaPlugin
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            System.out.println("imageView - "+fpImage);
 
                             if(null != fpImage)
                             {
@@ -364,7 +371,7 @@ public class zkFinger extends CordovaPlugin
 
                             }
 
-                            textView.setText("FakeStatus:" + fingerprintSensor.getFakeStatus()+"\n"+stringNewTem+"\n"+stringNewTem);
+                            //textView.setText("FakeStatus:" + fingerprintSensor.getFakeStatus()+"\n"+stringNewTem+"\n"+stringNewTem);
                         }
                     });
 
@@ -376,8 +383,8 @@ public class zkFinger extends CordovaPlugin
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                        
-                           textView.setText("captureError  errno=" + exp.getErrorCode() +
+                            
+                           LogHelper.i("captureError  errno=" + exp.getErrorCode() +
                                     ",Internal error code: " + exp.getInternalErrorCode() + ",message=" + exp.getMessage());
                          
                            
@@ -390,7 +397,7 @@ public class zkFinger extends CordovaPlugin
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            dialog.dismiss();
+                            //dialog.dismiss();
                             textView.setText("extract fail, errorcode:" + err);
                           
                         }
@@ -403,12 +410,8 @@ public class zkFinger extends CordovaPlugin
 
                     final byte[] tmpBuffer = fpTemplate;
 
-                    //isRegister = true;
                     isRegistered = true;
-                    dialog.dismiss();
-                    textView.setText("extractOK");
-                   
-
+                  
                     activity.runOnUiThread(new Runnable() {
 
                         @SuppressLint("SetTextI18n")
