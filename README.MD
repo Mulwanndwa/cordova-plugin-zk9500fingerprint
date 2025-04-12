@@ -3,7 +3,7 @@ Note: This plugin allows for easy cordova integration with the zkteco ZK9500 fin
 ## Install
 
 ```
-cordova plugin add https://github.com/Mulwanndwa/cordova-plugin-zkfinger
+cordova plugin add https://github.com/Mulwanndwa/cordova-plugin-zk9500fingerprint
 ```
 
 ```js
