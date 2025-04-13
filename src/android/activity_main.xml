@@ -31,15 +31,7 @@
             tools:textAlignment="center"
             tools:visibility="visible" />
             
-    </LinearLayout>
-  <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#F6F5F5"
-        android:orientation="vertical"
-        android:padding="10dp"
-        android:visibility="visible"
-        tools:visibility="visible">
+ 
 
         <AutoCompleteTextView
             android:id="@+id/autoCompleteTextView"
@@ -51,15 +43,7 @@
             android:textAlignment="center"
             android:textColor="#040303" />
     
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#F6F5F5"
-        android:orientation="vertical"
-        android:padding="10dp"
-        android:visibility="visible"
-        tools:visibility="visible">
+ 
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="match_parent"
