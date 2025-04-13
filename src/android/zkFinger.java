@@ -8,6 +8,7 @@ import android.app.PendingIntent;
 import java.io.ByteArrayOutputStream;
 
 import android.graphics.Color;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.widget.LinearLayout;
 
@@ -42,14 +43,24 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import android.annotation.SuppressLint;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
+import org.json.JSONObject;
 
 import ordev.pos.placeorder.R;
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import android.app.ProgressDialog;
 
 public class zkFinger extends CordovaPlugin
 {
@@ -75,15 +86,17 @@ public class zkFinger extends CordovaPlugin
 
     private final String ACTION_USB_PERMISSION = "ordev.pos.placeorder.USB_PERMISSION";
 
-    private int newUid = 25;
+    private int newUid = 0;
+    private String siteID = "2";
     private String strBase64 = "";
     public String baseUrl = "https://cmsdemo.placeorder.co.za/";
-    public String pos_token = "";
+    public String pos_token = "5756xzoHR8XEfOh5a1GD4IVkMCms";
     public String fingerTemp = "";
 
     public String stringNewTem = "";
 
     public Boolean isRegistered = false;
+    String SupervisorUserid = "5756";
     public  byte[] regTemp2;
 
     byte[] Enroll_Template;
@@ -103,6 +116,7 @@ public class zkFinger extends CordovaPlugin
     public  int enrollidx2 = 0;
 
     byte[] imgTemp;
+    byte[] regTemp1 = new byte[0];
 
     int imageCount = 0;
 
@@ -118,7 +132,7 @@ public class zkFinger extends CordovaPlugin
     private TextView textView = null;
     private View dialogView = null;
     private Activity activity = null;
-
+    private JSONArray temp_users = null;
     public int[] json2int (JSONArray arr)
     {
 
@@ -159,16 +173,16 @@ public class zkFinger extends CordovaPlugin
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
 
-       activity = this.cordova.getActivity();
-    
+        activity = this.cordova.getActivity();
+
 
         command = callbackContext;
 
-       
+
         try {
             if (action.equals("scan")) {
                 isRegistered = true;
-               
+                temp_users = args.getJSONArray(0);
                 activity.runOnUiThread(() -> {
                     activity.setContentView(R.layout.activity_main);
                     textView = activity.findViewById(R.id.textView);
@@ -178,11 +192,11 @@ public class zkFinger extends CordovaPlugin
                 });
                 InitDevice(command);
                 callbackContext.success("Native view shown");
-                 // cordova.setActivityResultCallback (this);
-                 // Intent intent = new Intent();
-                 // intent.putExtra("base64", strBase64);
-                 // that = this;
-                 // cordova.startActivityForResult(that, intent, MY_OP);
+                cordova.setActivityResultCallback (this);
+                // Intent intent = new Intent();
+                // intent.putExtra("base64", strBase64);
+                // that = this;
+                // cordova.startActivityForResult(that, intent, MY_OP);
                 return true;
             }
             else if(action.equals("write")){
@@ -285,7 +299,7 @@ public class zkFinger extends CordovaPlugin
         //         }
         //     }
         // }
-      
+
 
         UsbManager manager = (UsbManager)cordova.getActivity().getApplicationContext().getSystemService(Context.USB_SERVICE);
         PendingIntent permissionIntent = PendingIntent.getBroadcast(cordova.getActivity().getApplicationContext(), 0, new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_IMMUTABLE);
@@ -305,9 +319,9 @@ public class zkFinger extends CordovaPlugin
         //set pid
         fingerprintParams.put(ParameterHelper.PARAM_KEY_PID, PID);
         fingerprintSensor = FingprintFactory.createFingerprintSensor(cordova.getActivity().getApplicationContext(), TransportType.USB, fingerprintParams);
-       
-        
-       System.out.println("imageView - "+imageView);
+
+
+        System.out.println("imageView - "+imageView);
 
         OnBnBegin(callbackContext);
 
@@ -317,26 +331,7 @@ public class zkFinger extends CordovaPlugin
     @SuppressLint("LongLogTag")
     public void OnBnBegin(CallbackContext callbackContext) throws FingerprintException
     {
-  
-        //  Activity activity = this.cordova.getActivity();
-        // AlertDialog.Builder builder = new AlertDialog.Builder(cordova.getActivity());
-        // LayoutInflater inflater = LayoutInflater.from(cordova.getActivity());
-        // dialogView = inflater.inflate(R.layout.activity_main,null);
-        // // Set the custom layout
 
-        // builder.setTitle("Custom Dialog");
-        // builder.setPositiveButton("OK", null);
-
-        // textView = dialogView.findViewById(R.id.textView);
-        // imageView = dialogView.findViewById(R.id.imageView);
-
-        // textView.setText("Hello and welcome!");
-
-        // builder.setView(dialogView);
-
-        // AlertDialog dialog = builder.create();
-
-        // dialog.show();
 
         try {
             if (bstart) return;
@@ -383,11 +378,11 @@ public class zkFinger extends CordovaPlugin
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            
-                           LogHelper.i("captureError  errno=" + exp.getErrorCode() +
+
+                            LogHelper.i("captureError  errno=" + exp.getErrorCode() +
                                     ",Internal error code: " + exp.getInternalErrorCode() + ",message=" + exp.getMessage());
-                         
-                           
+
+
                         }
                     });
                 }
@@ -399,7 +394,7 @@ public class zkFinger extends CordovaPlugin
                         public void run() {
                             //dialog.dismiss();
                             textView.setText("extract fail, errorcode:" + err);
-                          
+
                         }
                     });
                 }
@@ -411,7 +406,7 @@ public class zkFinger extends CordovaPlugin
                     final byte[] tmpBuffer = fpTemplate;
 
                     isRegistered = true;
-                  
+
                     activity.runOnUiThread(new Runnable() {
 
                         @SuppressLint("SetTextI18n")
@@ -458,8 +453,13 @@ public class zkFinger extends CordovaPlugin
                                     if (0 < (ret = ZKFingerService.merge(regtemparray[0], regtemparray[1], regtemparray[2], regTemp))) {
 
                                         System.arraycopy(regTemp, 0, regTemp, 0, ret);
-                                        textView.setText("Enroll successful, User ID: " + newUid);
-//                                        textView.setBackgroundColor(Color.parseColor("#7aaa36"));
+                                        if(!Objects.equals(SupervisorUserid, "5756") &&
+                                                !Objects.equals(SupervisorUserid, "") &&
+                                                !Objects.equals(SupervisorUserid, null)) {
+                                            storeFingerprint();
+                                        }
+                                        //textView.setText("Enroll successful, User ID: " + newUid);
+
                                     } else {
                                         textView.setText("Enroll failed");
                                     }
@@ -481,7 +481,7 @@ public class zkFinger extends CordovaPlugin
                                     String new_user_id = strRes[0].toString().substring(4);
 
                                     textView.setText("Identify success, user ID: " + new_user_id + ", score:" + strRes[1]);
-
+                                    //command.success(new_user_id);
                                 } else {
                                     isRegister = false;
                                     enrollidx = 0;
@@ -489,7 +489,7 @@ public class zkFinger extends CordovaPlugin
                                     newUid = 0;
 
                                     textView.setText("Access denied. This user is not enrolled.");
-
+                                    command.success("Access denied. This user is not enrolled.");
                                 }
                                 //Base64 Template
                                 //String strBase64 = Base64.encodeToString(tmpBuffer, 0, fingerprintSensor.getLastTempLen(), Base64.NO_WRAP);
@@ -520,197 +520,36 @@ public class zkFinger extends CordovaPlugin
             textView.setText("Begin capture fail.errorcode:"+ e.getErrorCode() + "err message:" + e.getMessage() + "inner code:" + e.getInternalErrorCode());
         }
     }
-//    public void OnBnBegin(CallbackContext cbContext) throws FingerprintException{
-//        try {
-//            final CallbackContext callbackContext = cbContext;
-//            if (bstart) return;
-//            fingerprintSensor.open(0);
-//            System.out.println("Scanning captureOK");
-//
-//            final FingerprintCaptureListener listener = new FingerprintCaptureListener() {
-//                @Override
-//                public void captureOK( final  byte[] fpImage) {
-//
-//
-//                    final int width = fingerprintSensor.getImageWidth();
-//                    final int height = fingerprintSensor.getImageHeight();
-//
-//
-//                    cordova.getActivity().runOnUiThread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//
-//                            if(null != fpImage)
-//                            {
-//                                imageCount++;
-//                                ToolUtils.outputHexString(fpImage);
-//                                Log.i("image...", Arrays.toString(fpImage));
-//                                Bitmap bitmapFp = ToolUtils.renderCroppedGreyScaleBitmap(fpImage, width, height);
-//                                imageView.setImageBitmap(bitmapFp);
-//
-//                                ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
-//                                bitmapFp.compress(Bitmap.CompressFormat.JPEG, 100, stream2);
-//                                byte[] byteArray = stream2.toByteArray();
-//
-//                                strBase64 = Base64.encodeToString(byteArray, Base64.NO_WRAP);
-//
-//                                Log.i("strBase64 - ",strBase64);
-//                                intent.putExtra("base64", strBase64);
-//
-//                                cordova.startActivityForResult(that, intent, MY_OP);
-//
-//                                callbackContext.success(strBase64);
-//
-//
-//                            }
-//
-//                            command.success("FakeStatus:" + fingerprintSensor.getFakeStatus()+"\n"+stringNewTem+"\n"+stringNewTem);
-//                        }
-//                    });
-//
-//
-//                }
-//                @Override
-//                public void captureError(FingerprintException e) {
-//                    final FingerprintException exp = e;
-//                    cordova.getActivity().runOnUiThread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            LogHelper.i("captureError  errno=" + exp.getErrorCode() +
-//                                    ",Internal error code: " + exp.getInternalErrorCode() + ",message=" + exp.getMessage());
-//                            command.success("captureError  errno=" + exp.getErrorCode() +
-//                                    ",Internal error code: " + exp.getInternalErrorCode() + ",message=" + exp.getMessage());
-//                        }
-//                    });
-//                }
-//                @Override
-//                public void extractError(final int err)
-//                {
-//                    cordova.getActivity().runOnUiThread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//
-//                            LogHelper.i("extract fail, errorcode:" + err);
-//                        }
-//                    });
-//                }
-//
-//                @Override
-//                public void extractOK(byte[] fpTemplate){
-//
-//
-//                    final byte[] tmpBuffer = fpTemplate;
-//
-//
-//
-//                    cordova.getActivity().runOnUiThread(new Runnable() {
-//
-//                        @SuppressLint("SetTextI18n")
-//                        @Override
-//
-//                        public void run() {
-//
-//                            System.out.println("Scanning extractOK");
-//
-//                            if(isRegistered){
-//                                LogHelper.i("User ID: "+newUid+". The finger already enrolled.");
-//                                command.success("User ID: "+newUid+". The finger already enrolled.");
-//                                return;
-//                            }
-//
-//                            if (isRegister) {
-//                                byte[] bufids = new byte[256];
-//                                int ret = ZKFingerService.identify(tmpBuffer, bufids, 55, newUid);
-//
-//                                if (ret > 0) {
-//                                    isRegister = false;
-//                                    enrollidx = 0;
-//                                    //textView.setBackgroundColor(Color.parseColor("#7aaa36"));
-//                                    //textView.setText("The finger already enroll by userId: " + newUid);
-//                                    return;
-//                                }
-//
-//
-//                                if (enrollidx > 0 && ZKFingerService.verify(regtemparray[enrollidx-1], tmpBuffer) <= 0)
-//                                {
-//                                    ////textView.setText("Please press the same finger 3 times for the enrollment");
-//                                    //textView.setBackgroundColor(Color.parseColor("#7aaa36"));
-//                                    return;
-//                                }
-//
-//
-//                                System.arraycopy(tmpBuffer, 0, regtemparray[enrollidx], 0, 2048);
-//
-//                                //strBase64 = Base64.encodeToString(regtemparray[enrollidx], 0, ret,Base64.DEFAULT);
-//
-//                                enrollidx++;
-//
-//                                //stringNewTem = new String(regtemparray[enrollidx]);
-//
-//                                if (enrollidx == 3) {
-//                                    byte[] regTemp = new byte[2048];
-//                                    if (0 < (ret = ZKFingerService.merge(regtemparray[0], regtemparray[1], regtemparray[2], regTemp))) {
-//                                        ZKFingerService.save(regTemp, "test" + newUid);
-//                                        System.arraycopy(regTemp, 0, regTemp, 0, ret);
-//                                        //textView.setText("Enroll successful, User ID: " + newUid);
-//                                        //textView.setBackgroundColor(Color.parseColor("#7aaa36"));
-//                                    } else {
-//                                        //textView.setText("Enroll failed");
-//                                        //textView.setBackgroundColor(Color.parseColor("#db493b"));
-//                                    }
-//                                    isRegister = false;
-//                                    isRegistered = true;
-//
-//                                } else {
-//                                    //textView.setText("You need to press the " + (3 - enrollidx) + " time fingerprint");
-//
-//                                    //textView.setBackgroundColor(Color.parseColor("#7aaa36"));
-//                                }
-//
-//                            } else {
-//                                byte[] bufids = new byte[256];
-//                                int ret = ZKFingerService.identify(tmpBuffer, bufids, 55, newUid);
-//
-//                                if (ret > 0) {
-//
-//                                    String strRes[] = new String(bufids).split("\t");
-//
-//                                    //textView.setText("Identify success, userid: " + newUid + ", score:" + strRes[1]);
-//                                    //textView.setBackgroundColor(Color.parseColor("#7aaa36"));
-//
-//                                } else {
-//                                    callbackContext.error("Identification failed");
-//                                    //textView.setBackgroundColor(Color.parseColor("#7aaa36"));
-//                                }
-//                                //Base64 Template
-//                                //String strBase64 = Base64.encodeToString(tmpBuffer, 0, fingerprintSensor.getLastTempLen(), Base64.NO_WRAP);
-//                            }
-//                        }
-//                    });
-//                }
-//
-//
-//            };
-//            fingerprintSensor.setFingerprintCaptureListener(0, listener);
-//            fingerprintSensor.startCapture(0);
-//            bstart = true;
-//            if (newUid != 0 && fingerTemp != ""  && fingerTemp !="none" && fingerTemp !="null" && fingerTemp != null && fingerTemp != "false") {
-//                //callbackContext.success("Start capture");
-//
-//            }else{
-//                isRegister = true;
-//                enrollidx = 0;
-//                isRegistered = false;
-//                //textView.setText("You need to press the 3 time fingerprint");
-//            }
-//
-//        }catch (FingerprintException e)
-//        {
-//            //textView.setBackgroundColor(Color.parseColor("#db493b"));
-//            command.error("Begin capture fail.errorcode:"+ e.getErrorCode() + "err message:" + e.getMessage() + "inner code:" + e.getInternalErrorCode());
-//        }
-//    }
 
+    public void  SyncTemps()  {
+
+        //CustomerSearch();
+
+        try {
+            JSONArray jsonArr = temp_users;
+            for (int f = 0; f < jsonArr.length(); f++) {
+                JSONObject explrObject1 = jsonArr.getJSONObject(f);
+
+                if(explrObject1.getString("fingerprint_template") != "null" &&
+                        explrObject1.getString("fingerprint_template") != "" &&
+                        explrObject1.getString("fingerprint_template") != null){
+                    String myUserID = explrObject1.getString("id");
+                    Log.d("my User ID",myUserID+" "+explrObject1.getString("fingerprint_template").getBytes());
+                    ZKFingerService.save(explrObject1.getString("fingerprint_template").getBytes(), "test" + myUserID);
+                    //storeManager.setUserCode(explrObject1.getString("code"),myUserID);
+                }
+                Log.d("temp id",explrObject1.getString("id"));
+            }
+            Log.d("jsonArr",jsonArr.toString());
+//            TextView textViewUsers = (TextView)findViewById(R.id.textViewUsers);
+//            textViewUsers.setText("Number of enrolled users: "+jsonArr.length());
+            //textView.setText("Please begin capture first");
+
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
     public double compareByteArrays(byte[] a, byte[] b) {
         int n = Math.min(a.length, b.length), nLarge = Math.max(a.length, b.length);
         int unequalCount = nLarge - n;
@@ -720,128 +559,6 @@ public class zkFinger extends CordovaPlugin
     }
 
 
-
-    //    public static byte[] convertToBmp24bit(byte[] imageData) {
-//        Bitmap orgBitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
-//
-//        if(orgBitmap == null){
-//            return null;
-//        }
-//
-//        //image size
-//        int width = orgBitmap.getWidth();
-//        int height = orgBitmap.getHeight();
-//
-//        //image dummy data size
-//        //reason : the amount of bytes per image row must be a multiple of 4 (requirements of bmp format)
-//        byte[] dummyBytesPerRow = null;
-//        boolean hasDummy = false;
-//        int rowWidthInBytes = BYTE_PER_PIXEL * width; //source image width * number of bytes to encode one pixel.
-//        if(rowWidthInBytes%BMP_WIDTH_OF_TIMES>0){
-//            hasDummy=true;
-//            //the number of dummy bytes we need to add on each row
-//            dummyBytesPerRow = new byte[(BMP_WIDTH_OF_TIMES-(rowWidthInBytes%BMP_WIDTH_OF_TIMES))];
-//            //just fill an array with the dummy bytes we need to append at the end of each row
-//            for(int i = 0; i < dummyBytesPerRow.length; i++){
-//                dummyBytesPerRow[i] = (byte)0xFF;
-//            }
-//        }
-//
-//        //an array to receive the pixels from the source image
-//        int[] pixels = new int[width * height];
-//
-//        //the number of bytes used in the file to store raw image data (excluding file headers)
-//        int imageSize = (rowWidthInBytes+(hasDummy?dummyBytesPerRow.length:0)) * height;
-//        //file headers size
-//        int imageDataOffset = 0x36;
-//
-//        //final size of the file
-//        int fileSize = imageSize + imageDataOffset;
-//
-//        //Android Bitmap Image Data
-//        orgBitmap.getPixels(pixels, 0, width, 0, 0, width, height);
-//
-//        //ByteArrayOutputStream baos = new ByteArrayOutputStream(fileSize);
-//        ByteBuffer buffer = ByteBuffer.allocate(fileSize);
-//
-//        try {
-//            /*
-//            BITMAP FILE HEADER Write Start
-//            */
-//            buffer.put((byte)0x42);
-//            buffer.put((byte)0x4D);
-//
-//            //size
-//            buffer.put(writeInt(fileSize));
-//
-//            //reserved
-//            buffer.put(writeShort((short)0));
-//            buffer.put(writeShort((short)0));
-//
-//            //image data start offset
-//            buffer.put(writeInt(imageDataOffset));
-//
-//            /* BITMAP FILE HEADER Write End */
-//
-//            //*******************************************
-//
-//            /* BITMAP INFO HEADER Write Start */
-//            //size
-//            buffer.put(writeInt(0x28));
-//
-//            //width, height
-//            //if we add 3 dummy bytes per row : it means we add a pixel (and the image width is modified.
-//            buffer.put(writeInt(width+(hasDummy?(dummyBytesPerRow.length==3?1:0):0)));
-//            buffer.put(writeInt(height));
-//
-//            //planes
-//            buffer.put(writeShort((short)1));
-//
-//            //bit count
-//            buffer.put(writeShort((short)24));
-//
-//            //bit compression
-//            buffer.put(writeInt(0));
-//
-//            //image data size
-//            buffer.put(writeInt(imageSize));
-//
-//            //horizontal resolution in pixels per meter
-//            buffer.put(writeInt(0));
-//
-//            //vertical resolution in pixels per meter (unreliable)
-//            buffer.put(writeInt(0));
-//
-//            buffer.put(writeInt(0));
-//
-//            buffer.put(writeInt(0));
-//
-//            /* BITMAP INFO HEADER Write End */
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            return null;
-//        }
-//
-//        int row = height;
-//        int col = width;
-//        int startPosition = (row - 1) * col;
-//        int endPosition = row * col;
-//        while( row > 0 ){
-//            for(int i = startPosition; i < endPosition; i++ ){
-//                buffer.put((byte)(pixels[i] & 0x000000FF));
-//                buffer.put((byte)((pixels[i] & 0x0000FF00) >> 8));
-//                buffer.put((byte)((pixels[i] & 0x00FF0000) >> 16));
-//            }
-//            if(hasDummy){
-//                buffer.put(dummyBytesPerRow);
-//            }
-//            row--;
-//            endPosition = startPosition;
-//            startPosition = startPosition - col;
-//        }
-//
-//        return buffer.array();
-//    }
     private static byte[] writeInt(int value) throws IOException {
         byte[] b = new byte[4];
 
@@ -870,7 +587,67 @@ public class zkFinger extends CordovaPlugin
 
     private void storeFingerprint() {
 
+        String postUrl = baseUrl+"api/fingerprints/enroll_user_fingerprint";
+        RequestQueue requestQueue = Volley.newRequestQueue(activity);
+        JSONObject postData = new JSONObject();
 
+        stringNewTem = Base64.encodeToString(regTemp1, Base64.DEFAULT);
+
+        try {
+            postData.put("user_id", newUid);
+            postData.put("supervisor_user_id", SupervisorUserid);
+            postData.put("fingerprint_template", stringNewTem);
+            postData.put("fingerprint_image", strBase64);
+            postData.put("token",pos_token);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        ProgressDialog pd = new ProgressDialog(activity);
+        pd.setMessage("Enrolling fingerprint...");
+        pd.show();
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, postUrl, postData, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+
+                pd.dismiss();
+
+                textView.setText("Enroll successful, User ID: " + newUid);
+                textView.setBackgroundColor(Color.parseColor("#7aaa36"));
+
+                ZKFingerService.save(regTemp1, "test" + newUid);
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                //Log.d("Temp: ",storeManager.getBioTemp().toString());
+                pd.dismiss();
+                NetworkResponse networkResponse = error.networkResponse;
+                String errorText = "";
+                if (networkResponse != null && networkResponse.data != null) {
+                    String messageR = new String(networkResponse.data);
+                    try {
+                        JSONObject jsonObject = new JSONObject(messageR);
+                        errorText = jsonObject.getString("message");
+                    } catch (JSONException e) {
+                        errorText = "Enroll failed, You need to press the 3 time fingerprint.";
+                    }
+                }else{
+                    errorText = "Enroll failed, You need to press the 3 time fingerprint.";
+                }
+
+                textView.setText(errorText);
+                textView.setBackgroundColor(Color.parseColor("#db493b"));
+                isRegister = true;
+                enrollidx = 0;
+               
+                error.printStackTrace();
+            }
+        });
+
+        requestQueue.add(jsonObjectRequest);
     }
 
 
