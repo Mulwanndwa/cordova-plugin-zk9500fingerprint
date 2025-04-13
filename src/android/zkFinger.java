@@ -8,8 +8,11 @@ import android.app.PendingIntent;
 import java.io.ByteArrayOutputStream;
 
 import android.graphics.Color;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Base64;
 import android.view.LayoutInflater;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 
 import org.json.JSONArray;
@@ -41,6 +44,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -61,10 +66,10 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import android.app.ProgressDialog;
-
+import android.widget.AutoCompleteTextView;
 public class zkFinger extends CordovaPlugin
 {
-
+    public AutoCompleteTextView autoTextView = null;
     private static final int VID = 6997;    //zkteco device VID always 6997
     private static final int PID = 292;    //fvs100 PID always 512
 
@@ -89,8 +94,8 @@ public class zkFinger extends CordovaPlugin
     private int newUid = 0;
     private String siteID = "2";
     private String strBase64 = "";
-    public String baseUrl = "https://cmsdemo.placeorder.co.za/";
-    public String pos_token = "5756xzoHR8XEfOh5a1GD4IVkMCms";
+    public String baseUrl = "";
+    public String pos_token = "";
     public String fingerTemp = "";
 
     public String stringNewTem = "";
@@ -133,6 +138,7 @@ public class zkFinger extends CordovaPlugin
     private View dialogView = null;
     private Activity activity = null;
     private JSONArray temp_users = null;
+
     public int[] json2int (JSONArray arr)
     {
 
@@ -182,14 +188,62 @@ public class zkFinger extends CordovaPlugin
         try {
             if (action.equals("scan")) {
                 isRegistered = true;
-                temp_users = args.getJSONArray(0);
+                //JSONArray user_data = args;
+                //Log.i("temp_users args",args.toString());
+                //user_data.put(new JSONObject(args.toString()));
+
+                if(args.length() > 0){
+                    for (int u = 0; u < args.length(); u++) {
+                        JSONObject jsonObject0 = args.getJSONObject(u);
+                        pos_token = jsonObject0.getString("token");
+                        siteID = jsonObject0.getString("site_id");
+                        baseUrl = jsonObject0.getString("base_url");
+                        temp_users = new JSONArray(jsonObject0.getString("users"));
+                    }
+                }
+
+                Log.i("temp_users",temp_users.toString());
+                Log.i("temp_users site_id",siteID);
+                Log.i("temp_users user_token",pos_token);
+                //baseUrl = args.getJSONArray(1).toString();
+                final int[] initCount = {0};
                 activity.runOnUiThread(() -> {
                     activity.setContentView(R.layout.activity_main);
                     textView = activity.findViewById(R.id.textView);
                     imageView = activity.findViewById(R.id.imageView);
-                    textView.setText("Hello from Cordova plugin!");
+                    autoTextView = activity.findViewById(R.id.autoCompleteTextView);
 
+                    autoTextView.addTextChangedListener(new TextWatcher() {
+                        @Override
+                        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                            Log.d("editable",charSequence.toString());
+                        }
+                        @Override
+                        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                            Log.d("initCount", i + " - " + i1 + " - " + i2 + "- " + charSequence.length());
+                            if (i2 > i1 && i1 > 0) {
+                                String charSequenceStr = charSequence.toString();
+                                if (charSequenceStr.contains("-")) {
+                                    String[] editableStr = charSequenceStr.split("-");
+                                    Log.d("editableStr", editableStr[1]);
+                                    getUser(editableStr[1], false);
+
+                                }
+
+                            }
+                            initCount[0] = i2;
+                        }
+
+
+                        @Override
+                        public void afterTextChanged(Editable editable) {
+                            Log.d("editable", "" + editable.length() + " = " + initCount[0]);
+                        }
+
+                    });
                 });
+
+
                 InitDevice(command);
                 callbackContext.success("Native view shown");
                 cordova.setActivityResultCallback (this);
@@ -217,6 +271,8 @@ public class zkFinger extends CordovaPlugin
         }
 
     }
+
+
 
     private void writeTemplateToFile(String file, String content, CallbackContext callbackContext) {
         BufferedWriter out = null;
@@ -489,7 +545,8 @@ public class zkFinger extends CordovaPlugin
                                     newUid = 0;
 
                                     textView.setText("Access denied. This user is not enrolled.");
-                                    command.success("Access denied. This user is not enrolled.");
+                                    OnBnRescan();
+                                    // command.success("Access denied. This user is not enrolled.");
                                 }
                                 //Base64 Template
                                 //String strBase64 = Base64.encodeToString(tmpBuffer, 0, fingerprintSensor.getLastTempLen(), Base64.NO_WRAP);
@@ -511,19 +568,158 @@ public class zkFinger extends CordovaPlugin
                 isRegistered = false;
                 textView.setText("You need to press the 3 time fingerprint");
             }
-
-            //textView.setBackgroundColor(Color.parseColor("#7aaa36"));
+            SyncTemps();
 
         }catch (FingerprintException e)
         {
             textView.setBackgroundColor(Color.parseColor("#db493b"));
             textView.setText("Begin capture fail.errorcode:"+ e.getErrorCode() + "err message:" + e.getMessage() + "inner code:" + e.getInternalErrorCode());
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
         }
     }
+    private void getUser(String user_id, boolean scanned) {
 
-    public void  SyncTemps()  {
+        String postUrl = baseUrl+"api/fingerprints/get_user_fingerprint";
+        RequestQueue requestQueue = Volley.newRequestQueue(activity);
+        JSONObject postData = new JSONObject();
+        ProgressDialog pd = new ProgressDialog(activity);
+        pd.setMessage("Fetching user details...");
+        pd.show();
 
-        //CustomerSearch();
+        textView.setText("Please begin capture first");
+
+        try {
+            postData.put("user_id", user_id);
+            postData.put("site_id", siteID);
+            postData.put("token",pos_token);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Log.d("postData",postData.toString());
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, postUrl, postData, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+
+                pd.dismiss();
+                JSONObject jsonObject = null;
+                JSONArray  jsonArray = null;
+
+
+                try {
+
+                    jsonObject = response.getJSONObject("data");
+                    Log.d("new jsonArray",jsonObject.getString("name"));
+                    String[] fullname = jsonObject.getString("name").split(" ");
+                    newUid = Integer.parseInt(jsonObject.getString("id"));
+                    Log.d("is_override_user", jsonObject.getString("is_override_user"));
+
+                    if(jsonObject.getString("fingerprint_template") != "" &&
+                            jsonObject.getString("fingerprint_template") != "null" &&
+                            jsonObject.getString("fingerprint_template") != null){
+
+                        if(scanned){
+                            //OnDone();
+                        }
+
+                    }else {
+
+                        if(scanned) {
+
+                            textView.setBackgroundColor(Color.parseColor("#db493b"));
+                            textView.setText("Access denied. This user is not enrolled.");
+
+                            return;
+                        }
+
+                        newUid = Integer.parseInt(jsonObject.getString("id"));
+                        isRegistered = false;
+                        isRegister = true;
+                        enrollidx = 0;
+
+                        textView.setBackgroundColor(Color.parseColor("#7aaa36"));
+
+                    }
+
+                    if(jsonObject.getString("name").equals("Cash Sale") || jsonObject.getString("id").equals("5756")){
+                        OnBnRescan();
+                    }
+                } catch (JSONException e) {
+                    //Log.d("error json",e.toString());
+                    //throw new RuntimeException(e);
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                //Log.d("Temp: ",storeManager.getBioTemp().toString());
+                pd.dismiss();
+
+                NetworkResponse networkResponse = error.networkResponse;
+                String errorText = "";
+                Log.d("Get user error",error.networkResponse.toString());
+                if (networkResponse != null && networkResponse.data != null) {
+                    String messageR = new String(networkResponse.data);
+                    try {
+                        JSONObject jsonObject = new JSONObject(messageR);
+                        errorText = jsonObject.getString("message");
+                    } catch (JSONException e) {
+                        errorText = "Oops, something went wrong, please try again later.";
+                    }
+                }else{
+                    errorText = "Oops, something went wrong, please try again later.";
+                }
+                if(scanned) {
+                    textView.setBackgroundColor(Color.parseColor("#db493b"));
+                    textView.setText("Access denied. This user is not enrolled.");
+
+                    return;
+                }
+                textView.setText(errorText);
+                textView.setBackgroundColor(Color.parseColor("#db493b"));
+                isRegister = true;
+                enrollidx = 0;
+                // clear();
+
+                error.printStackTrace();
+            }
+        });
+
+        requestQueue.add(jsonObjectRequest);
+
+    }
+    public void OnBnRescan() {
+        if (bstart) {
+            isRegister = false;
+            enrollidx = 0;
+            textView.setText("Please begin capture first");
+        }else {
+            textView.setText("Please begin capture first");
+        }
+    }
+    @SuppressLint("LongLogTag")
+    public void  CustomerSearch() throws JSONException {
+
+        String allUsersStr = "";
+        for (int i = 0; i < temp_users.length(); i++) {
+            JSONObject explrObject = temp_users.getJSONObject(i);
+            allUsersStr += explrObject.getString("name") +" - "+
+                    explrObject.getString("id")+
+                    " - "+explrObject.getString("cellphone")+",";
+        }
+        String delimiter = ",";
+        String[] split_string = allUsersStr.split(delimiter);
+        System.out.println("countryNameList"+ Arrays.toString(split_string));
+        ArrayAdapter adapter = new ArrayAdapter(activity.getApplicationContext(), android.R.layout.simple_list_item_1,  split_string);
+
+        autoTextView.setAdapter(adapter);
+        autoTextView.setThreshold(1);//start searching from 1 character
+        autoTextView.setAdapter(adapter);   //set the adapter for displaying country name list
+    }
+    public void  SyncTemps() throws JSONException {
+        CustomerSearch();
 
         try {
             JSONArray jsonArr = temp_users;
