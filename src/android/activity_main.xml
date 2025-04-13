@@ -11,28 +11,64 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="#F6F5F5"
         android:orientation="vertical"
+        android:padding="10dp"
         android:visibility="visible"
         tools:visibility="visible">
 
         <TextView
             android:id="@+id/textView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#4CAF50"
+            android:layout_height="62dp"
+            android:layout_marginTop="20dp"
+            android:background="#DDEFEDED"
             android:text="Scan your finger"
+            android:textColor="#4CAF50"
             android:textSize="24sp"
             android:visibility="visible"
+            tools:layout_marginBottom="20dp"
             tools:textAlignment="center"
             tools:visibility="visible" />
+            
+    </LinearLayout>
+  <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#F6F5F5"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:visibility="visible"
+        tools:visibility="visible">
 
+        <AutoCompleteTextView
+            android:id="@+id/autoCompleteTextView"
+            android:layout_width="match_parent"
+            android:layout_height="61dp"
+            android:layout_marginBottom="20dp"
+            android:background="#DDEFEDED"
+            android:hint="Search"
+            android:textAlignment="center"
+            android:textColor="#040303" />
+    
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#F6F5F5"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:visibility="visible"
+        tools:visibility="visible">
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="match_parent"
             android:layout_height="301dp"
+            android:layout_marginTop="10dp"
+            android:background="#999A9A"
             android:baselineAlignBottom="false"
             android:visibility="visible"
-            app:srcCompat="@color/result_minor_text"
             tools:visibility="visible" />
+
     </LinearLayout>
 </LinearLayout>
