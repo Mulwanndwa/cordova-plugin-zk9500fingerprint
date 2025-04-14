@@ -154,7 +154,7 @@ public class zktecoFinger extends CordovaPlugin
         return  respArr;
     }
 
-    zk9500 that;
+    zktecoFinger that;
     Intent intent;
     private BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         @Override
