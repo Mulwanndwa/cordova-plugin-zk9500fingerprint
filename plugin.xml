@@ -7,8 +7,8 @@
 	<js-module name="zk9500" src="www/zk9500.js"><clobbers target="cordova-plugin-zk9500" /></js-module>
 	<platform name="android">
 		<config-file target="AndroidManifest.xml" parent="/*">
-			<meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" android:resource="@xml/device_filter" />
-			<meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" android:resource="@xml/activity_main" />
+<!-- 			<meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" android:resource="@xml/device_filter" />
+			<meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" android:resource="@xml/activity_main" /> -->
 	            	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 	        </config-file>
 
