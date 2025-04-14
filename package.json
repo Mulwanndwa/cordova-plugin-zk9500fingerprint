@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/cordova-plugin-zkfinger.git"
+    "url": "https://github.com/Mulwanndwa/cordova-plugin-zkfinger.git"
   },
   "keywords": [
     "cordova",
@@ -25,6 +25,6 @@
     }
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "registry": "https://github.com/Mulwanndwa/cordova-plugin-zkfinger"
   }
 }
