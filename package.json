@@ -1,14 +1,14 @@
 {
-  "name": "cordova-plugin-zk9500",
+  "name": "cordova-plugin-zkfinger-mpho",
   "version": "1.0.0",
   "description": "Cordova plugin for ZK9500 fingerprint scanner",
   "cordova": {
-    "id": "cordova-plugin-zk9500",
+    "id": "cordova-plugin-zkfinger",
     "platforms": ["android"]
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/cordova-plugin-zk9500.git"
+    "url": "https://github.com/yourusername/cordova-plugin-zkfinger.git"
   },
   "keywords": [
     "cordova",
