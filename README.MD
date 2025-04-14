@@ -16,7 +16,7 @@ Don't forget to add `android.hardware.usb.host` feature to the `AndroidManifest.
 ```
 
 ```js
-cordova.plugins.zk9500.scan(function(success){
+cordova.plugins.zktecoFinger.scan(function(success){
     console.log("success",success);
 }, function(error){
     console.log("error",error);
