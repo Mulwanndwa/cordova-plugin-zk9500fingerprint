@@ -22,3 +22,5 @@ cordova.plugins.zkFinger.scan(function(success){
     console.log("error",error);
 });
 
+## Licence ##
+Copyright (c) 2025 Mpho Mulwanndwa (South Africa)
