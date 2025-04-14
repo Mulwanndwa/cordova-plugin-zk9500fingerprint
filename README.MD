@@ -6,7 +6,7 @@ Note: This plugin allows for easy cordova integration with the zkteco ZK9500 fin
 ## Install
 
 ```
-cordova plugin add https://github.com/Mulwanndwa/cordova-plugin-zk9500
+cordova plugin add https://github.com/Mulwanndwa/cordova-plugin-zktecoFinger
 ```
 Don't forget to add `android.hardware.usb.host` feature to the `AndroidManifest.xml`.
 ```xml
