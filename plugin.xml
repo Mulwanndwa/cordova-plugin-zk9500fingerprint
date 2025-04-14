@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="cordova-plugin-zkfinger" version="0.0.27" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
-	<name>cordova-plugin-zkfinger</name>
+<plugin id="cordova-plugin-zk9500" version="0.0.27" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+	<name>cordova-plugin-zk9500</name>
 	<description>
 		This plugin allows for easy cordova integration with the zkteco ZK9500 fingerprint reader
 	</description>
-	<js-module name="zkFinger" src="www/zkfinger.js"><clobbers target="cordova.plugins.zkFinger" /></js-module>
+	<js-module name="zk9500" src="www/zk9500.js"><clobbers target="cordova-plugin-zk9500" /></js-module>
 	<platform name="android">
 		<config-file target="AndroidManifest.xml" parent="/*">
 			<meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" android:resource="@xml/device_filter" />
@@ -13,13 +13,13 @@
 	        </config-file>
 
 		<config-file target="res/xml/config.xml"  parent="/*">
-			<feature name="zkFinger">
-				<param name="android-package" value="cordova.plugin.zkteco.scan.zkFinger" />
+			<feature name="zk9500">
+				<param name="android-package" value="cordova.plugin.zkteco.scan.zk9500" />
 			</feature>
 		</config-file>
 		<source-file src="src/android/zkandroidcore.jar" target-dir="libs" framework="true" />
 		<source-file src="src/android/zkandroidfpreader.jar" target-dir="libs" framework="true" />
-		<source-file src="src/android/zkFinger.java" target-dir="src/cordova/plugin/zkteco/scan/zkFinger" />
+		<source-file src="src/android/zk9500.java" target-dir="src/cordova/plugin/zkteco/scan/zk9500" />
 		<source-file src="src/android/device_filter.xml" target-dir="res/xml" />
 		<source-file src="src/android/musicg-1.4.2.0.jar" target-dir="libs" framework="true" />
 		<source-file src="src/android/device_filter.xml" target-dir="res/xml" />
