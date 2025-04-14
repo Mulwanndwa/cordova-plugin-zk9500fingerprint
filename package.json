@@ -1,5 +1,5 @@
 {
-  "name": "cordova-plugin-zkfinger-mpho",
+  "name": "cordova-plugin-zkfinger",
   "version": "1.0.0",
   "description": "Cordova plugin for ZK9500 fingerprint scanner",
   "cordova": {
