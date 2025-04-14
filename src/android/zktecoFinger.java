@@ -201,58 +201,75 @@ public class zktecoFinger extends CordovaPlugin
                         baseUrl = jsonObject0.getString("base_url");
                         temp_users = new JSONArray(jsonObject0.getString("users"));
                     }
-                }
+                    Log.i("temp_users",temp_users.toString());
+                    Log.i("temp_users site_id",siteID);
+                    Log.i("temp_users user_token",pos_token);
+                
 
-                Log.i("temp_users",temp_users.toString());
-                Log.i("temp_users site_id",siteID);
-                Log.i("temp_users user_token",pos_token);
-                //baseUrl = args.getJSONArray(1).toString();
-                final int[] initCount = {0};
-                activity.runOnUiThread(() -> {
-                    String packageName = cordova.getActivity().getPackageName();
-                    Resources res = cordova.getActivity().getResources();
+         
+                    //baseUrl = args.getJSONArray(1).toString();
+                    final int[] initCount = {0};
+                    activity.runOnUiThread(() -> {
+                        String packageName = cordova.getActivity().getPackageName();
+                        Resources res = cordova.getActivity().getResources();
 
-                    int layoutId = res.getIdentifier("activity_main", "layout", packageName);
-                    cordova.getActivity().setContentView(layoutId);
+                        int layoutId = res.getIdentifier("activity_main", "layout", packageName);
+                        cordova.getActivity().setContentView(layoutId);
 
-                    int textViewId = res.getIdentifier("textView", "id", packageName);
-                    textView = cordova.getActivity().findViewById(textViewId);
-                    int imageViewId = res.getIdentifier("imageView", "id", packageName);
-                    imageView = cordova.getActivity().findViewById(imageViewId);
-                    int autoTextViewId = res.getIdentifier("autoTextView", "id", packageName);
-                    autoTextView = cordova.getActivity().findViewById(autoTextViewId);
+                        int textViewId = res.getIdentifier("textView", "id", packageName);
+                        textView = cordova.getActivity().findViewById(textViewId);
+                        int imageViewId = res.getIdentifier("imageView", "id", packageName);
+                        imageView = cordova.getActivity().findViewById(imageViewId);
+                        int autoTextViewId = res.getIdentifier("autoTextView", "id", packageName);
+                        autoTextView = cordova.getActivity().findViewById(autoTextViewId);
 
-                    autoTextView.addTextChangedListener(new TextWatcher() {
-                        @Override
-                        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                            Log.d("editable",charSequence.toString());
-                        }
-                        @Override
-                        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                            Log.d("initCount", i + " - " + i1 + " - " + i2 + "- " + charSequence.length());
-                            if (i2 > i1 && i1 > 0) {
-                                String charSequenceStr = charSequence.toString();
-                                if (charSequenceStr.contains("-")) {
-                                    String[] editableStr = charSequenceStr.split("-");
-                                    Log.d("editableStr", editableStr[1]);
-                                    getUser(editableStr[1], false);
+                        autoTextView.addTextChangedListener(new TextWatcher() {
+                            @Override
+                            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                                Log.d("editable",charSequence.toString());
+                            }
+                            @Override
+                            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                                Log.d("initCount", i + " - " + i1 + " - " + i2 + "- " + charSequence.length());
+                                if (i2 > i1 && i1 > 0) {
+                                    String charSequenceStr = charSequence.toString();
+                                    if (charSequenceStr.contains("-")) {
+                                        String[] editableStr = charSequenceStr.split("-");
+                                        Log.d("editableStr", editableStr[1]);
+                                        getUser(editableStr[1], false);
+
+                                    }
 
                                 }
-
+                                initCount[0] = i2;
                             }
-                            initCount[0] = i2;
-                        }
 
 
-                        @Override
-                        public void afterTextChanged(Editable editable) {
-                            Log.d("editable", "" + editable.length() + " = " + initCount[0]);
-                        }
+                            @Override
+                            public void afterTextChanged(Editable editable) {
+                                Log.d("editable", "" + editable.length() + " = " + initCount[0]);
+                            }
 
+                        });
                     });
-                });
 
+                }else{
+                    activity.runOnUiThread(() -> {
+                        String packageName = cordova.getActivity().getPackageName();
+                        Resources res = cordova.getActivity().getResources();
 
+                        int layoutId = res.getIdentifier("activity_main", "layout", packageName);
+                        cordova.getActivity().setContentView(layoutId);
+
+                        int textViewId = res.getIdentifier("textView", "id", packageName);
+                        textView = cordova.getActivity().findViewById(textViewId);
+                        int imageViewId = res.getIdentifier("imageView", "id", packageName);
+                        imageView = cordova.getActivity().findViewById(imageViewId);
+                        int autoTextViewId = res.getIdentifier("autoTextView", "id", packageName);
+                        autoTextView = cordova.getActivity().findViewById(autoTextViewId);
+                    });
+                }
+                
                 InitDevice(command);
                 callbackContext.success("Native view shown");
                 cordova.setActivityResultCallback (this);
