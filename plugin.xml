@@ -23,7 +23,7 @@
 		<source-file src="src/android/device_filter.xml" target-dir="res/xml" />
 		<source-file src="src/android/musicg-1.4.2.0.jar" target-dir="libs" framework="true" />
 <!-- 		<source-file src="src/android/device_filter.xml" target-dir="res/xml" /> -->
-		<source-file src="src/android/SILKIDDemo-zkfinger10.xml" target-dir="android" />
-		<framework src="src/android/build.gradle" custom="true" type="gradleReference" />
+<!-- 		<source-file src="src/android/SILKIDDemo-zkfinger10.xml" target-dir="android" /> -->
+		<framework src="src/android/zk9500-build.gradle" custom="true" type="gradleReference" />
 	</platform>
 </plugin>
