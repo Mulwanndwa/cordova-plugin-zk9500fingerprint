@@ -68,7 +68,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import android.app.ProgressDialog;
 import android.widget.AutoCompleteTextView;
-public class zkFinger extends CordovaPlugin
+public class zk9500 extends CordovaPlugin
 {
     public AutoCompleteTextView autoTextView = null;
     private static final int VID = 6997;    //zkteco device VID always 6997
@@ -154,7 +154,7 @@ public class zkFinger extends CordovaPlugin
         return  respArr;
     }
 
-    zkFinger that;
+    zk9500 that;
     Intent intent;
     private BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         @Override
@@ -209,9 +209,12 @@ public class zkFinger extends CordovaPlugin
                 //baseUrl = args.getJSONArray(1).toString();
                 final int[] initCount = {0};
                 activity.runOnUiThread(() -> {
-                    Resources res = cordova.getActivity().getResources();
                     String packageName = cordova.getActivity().getPackageName();
-                    activity.setContentView(R.layout.activity_main);
+                    Resources res = cordova.getActivity().getResources();
+
+                    int layoutId = res.getIdentifier("activity_main", "layout", packageName);
+                    cordova.getActivity().setContentView(layoutId);
+
                     int textViewId = res.getIdentifier("textView", "id", packageName);
                     textView = cordova.getActivity().findViewById(textViewId);
                     int imageViewId = res.getIdentifier("imageView", "id", packageName);
