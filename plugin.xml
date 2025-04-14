@@ -4,7 +4,9 @@
 	<description>
 		This plugin allows for easy cordova integration with the zkteco ZK9500 fingerprint reader
 	</description>
-	<js-module name="zktecoFinger" src="www/zktecoFinger.js"><clobbers target="cordova-plugin-zktecoFinger" /></js-module>
+	<js-module name="zktecoFinger" src="www/zktecoFinger.js">
+		<clobbers target="cordova.plugins.zktecoFinger" />
+	</js-module>
 	<platform name="android">
 		<config-file target="AndroidManifest.xml" parent="/*">
 			<meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" android:resource="@xml/device_filter" />
