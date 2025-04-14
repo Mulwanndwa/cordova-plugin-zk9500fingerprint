@@ -20,7 +20,7 @@
 		<source-file src="src/android/zkandroidcore.jar" target-dir="libs" framework="true" />
 		<source-file src="src/android/zkandroidfpreader.jar" target-dir="libs" framework="true" />
 		<source-file src="src/android/zk9500.java" target-dir="src/cordova/plugin/zkteco/scan/zk9500" />
-		<source-file src="src/android/activity_main.xml" target-dir="res/values" />
+		<source-file src="src/android/activity_main.xml" target-dir="res/layout" />
 		<source-file src="src/android/musicg-1.4.2.0.jar" target-dir="libs" framework="true" />
 		<source-file src="src/android/device_filter.xml" target-dir="res/xml" />
 <!-- 		<source-file src="src/android/device_filter.xml" target-dir="res/xml" /> -->
