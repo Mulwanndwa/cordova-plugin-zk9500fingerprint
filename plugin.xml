@@ -25,8 +25,8 @@
 		<source-file src="src/android/activity_main.xml" target-dir="res/layout" />
 		<source-file src="src/android/musicg-1.4.2.0.jar" target-dir="libs" framework="true" />
 		<source-file src="src/android/device_filter.xml" target-dir="res/xml" />
-		<source-file src="src/android/armeabi-v7a" target-dir="src/libs" />
-		<source-file src="src/android/arm64-v8a" target-dir="src/libs" />
+		<source-file src="src/android/armeabi-v7a" target-dir="libs" />
+		<source-file src="src/android/arm64-v8a" target-dir="libs" />
 		<framework src="src/android/zk9500-build.gradle" custom="true" type="gradleReference" />
 	</platform>
 </plugin>
