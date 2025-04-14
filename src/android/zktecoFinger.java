@@ -68,7 +68,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import android.app.ProgressDialog;
 import android.widget.AutoCompleteTextView;
-public class zk9500 extends CordovaPlugin
+public class zktecoFinger extends CordovaPlugin
 {
     public AutoCompleteTextView autoTextView = null;
     private static final int VID = 6997;    //zkteco device VID always 6997
