@@ -1,21 +1,27 @@
 {
-  "name": "cordova-plugin-zkfingerprint",
+  "name": "cordova-plugin-zk9500",
   "version": "1.0.0",
-  "description": "A cordova plugin for the zkteco zk9500 fingerprint reader",
-  "main": "plugin.xml",
-  "scripts": {
-    "test": ""
-  },
-  "author": "Mpho Mulwanndwa",
-  "license": "VANDS",
+  "description": "Cordova plugin for ZK9500 fingerprint scanner",
   "cordova": {
-    "id": "cordova-plugin-zkfingerprint",
-    "platforms": [
-      "android"
-    ]
+    "id": "cordova-plugin-zk9500",
+    "platforms": ["android"]
   },
-  "keywords": ["zkteco","bixbyte","cordova","fingerprint","zk9500"],
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/cordova-plugin-zk9500.git"
+  },
+  "keywords": [
+    "cordova",
+    "plugin",
+    "zk9500",
+    "fingerprint",
+    "cordova-android"
+  ],
+  "author": "Mpho Mulwanndwa",
+  "license": "MIT",
+  "engines": {
+    "cordovaDependencies": {
+      ">=3.0.0": {}
+    }
   }
 }
