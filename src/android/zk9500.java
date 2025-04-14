@@ -1,4 +1,3 @@
-
 package cordova.plugin.zkteco.scan;
 
 import android.app.Activity;
@@ -8,6 +7,7 @@ import android.app.PendingIntent;
 
 import java.io.ByteArrayOutputStream;
 
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -58,7 +58,7 @@ import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
 import org.json.JSONObject;
 
-import ordev.pos.placeorder.R;
+//import ordev.pos.placeorder.R;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -68,7 +68,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import android.app.ProgressDialog;
 import android.widget.AutoCompleteTextView;
-public class zk9500 extends CordovaPlugin
+public class zkFinger extends CordovaPlugin
 {
     public AutoCompleteTextView autoTextView = null;
     private static final int VID = 6997;    //zkteco device VID always 6997
@@ -154,7 +154,7 @@ public class zk9500 extends CordovaPlugin
         return  respArr;
     }
 
-    zk9500 that;
+    zkFinger that;
     Intent intent;
     private BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         @Override
@@ -209,10 +209,15 @@ public class zk9500 extends CordovaPlugin
                 //baseUrl = args.getJSONArray(1).toString();
                 final int[] initCount = {0};
                 activity.runOnUiThread(() -> {
+                    Resources res = cordova.getActivity().getResources();
+                    String packageName = cordova.getActivity().getPackageName();
                     activity.setContentView(R.layout.activity_main);
-                    textView = activity.findViewById(R.id.textView);
-                    imageView = activity.findViewById(R.id.imageView);
-                    autoTextView = activity.findViewById(R.id.autoCompleteTextView);
+                    int textViewId = res.getIdentifier("textView", "id", packageName);
+                    textView = cordova.getActivity().findViewById(textViewId);
+                    int imageViewId = res.getIdentifier("imageView", "id", packageName);
+                    imageView = cordova.getActivity().findViewById(imageViewId);
+                    int autoTextViewId = res.getIdentifier("autoTextView", "id", packageName);
+                    autoTextView = cordova.getActivity().findViewById(autoTextViewId);
 
                     autoTextView.addTextChangedListener(new TextWatcher() {
                         @Override
